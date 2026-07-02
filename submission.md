@@ -42,9 +42,9 @@ ai201-project5-mixtape-starter/
 └── .gitignore
 ```
 
-Dataflow
-```
-mermaid
+## Dataflow
+
+```mermaid
 flowchart TD
     Client([Client · curl / browser])
 
@@ -72,8 +72,10 @@ flowchart TD
         PLAYLIST[(Playlist)]
     end
 
-    Client -->|HTTP GET/POST| Flask
-    Flask -.->|JSON| Client
+    Client -->|HTTP GET/POST| RS
+    Client -->|HTTP GET/POST| RP
+    Client -->|HTTP GET/POST| RU
+    Client -->|HTTP GET/POST| RF
 
     RS --> SEARCH
     RS --> STREAK
@@ -94,9 +96,11 @@ flowchart TD
     PLAY --> SONG
     FEED --> EVENT
     FEED --> USER
-    ```
 ```
-mermaid
+
+## Rating Notification Flow
+
+```mermaid
 sequenceDiagram
     actor Rater
     participant API as routes/songs
@@ -104,20 +108,20 @@ sequenceDiagram
     participant DB as SQLite
     actor Sharer
 
-    Rater->>API: POST /songs/<id>/rate {score}
+    Rater->>API: POST /songs/:id/rate
     API->>NS: rate_song(user, song, score)
     NS->>DB: INSERT/UPDATE Rating
     Note over NS: if song.shared_by != rater
-    NS->>DB: INSERT Notification (song_rated)
+    NS->>DB: INSERT Notification
     NS-->>API: Rating
     API-->>Rater: 201 Created
 
-    Sharer->>API: GET /users/<sharer>/notifications
-    API->>NS: get_notifications(sharer)
+    Sharer->>API: GET /users/:id/notifications
+    API->>NS: get_notifications()
     NS->>DB: SELECT Notification
-    NS-->>Sharer: "<rater> rated your song 4/5"
+    NS-->>API: Notifications
+    API-->>Sharer: JSON response
 ```
-
 
 ## Root Cause Analysis 
 
@@ -171,3 +175,7 @@ sequenceDiagram
 **The root cause —** An off-by-one in the return statement. The list of songs was fetched correctly and in the right order, but the `songs[:-1]` slice chopped off the last element before serializing. So the final song by position was always omitted from the response.
 
 **Your fix and side-effect check —** I changed `songs[:-1]` to `songs[:]` so the full ordered list is returned. Afterward I confirmed all added songs now appear in `position` order, and checked edge cases: a single-song playlist now returns that 1 song (previously it returned an empty list), and an empty playlist still returns `[]`.
+
+##Commits for the Bugs
+
+![Screenshot of commits](Screenshot_2026-07-02_143334.png)
