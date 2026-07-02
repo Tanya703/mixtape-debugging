@@ -178,4 +178,4 @@ sequenceDiagram
 
 ##Commits for the Bugs
 
-![Screenshot of commits](Screenshot_2026-07-02_143334.png)
+![Screenshot of commits](screen.png)
